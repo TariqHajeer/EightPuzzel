@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Puzzle Solver</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .puzzle-board input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        .puzzle-board label {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        .submit-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background-color: #45a049;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>8-Puzzle Solver</h1>
+    <div class="puzzle-board">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="1"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="2"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="3"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="4"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="5"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="6"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="7"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]" value="8"
+            title="Enter numbers from 1 to 8, or leave empty">
+        <input type="text" name="board[]" maxlength="1" pattern="[1-8]?"
+            title="Enter numbers from 1 to 8, or leave empty">
+    </div>
+
+    <button type="button" class="submit-button" onclick="solve()">Solve</button>
+    <div class="error-message"></div>
+    <div class="success-message"></div>
+    <div id="solvedive">
+
+    </div>
+</body>
+<script>
+    function solve() {
+        $('#solvedive').empty();
+        $('.success-message').text('');
+        $(".error-message").text("");
+        var inputs = $("[name='board[]']");
+        var values = inputs.map(function () {
+            return this.value;
+        }).get();
+        var numbers = [1, 2, 3, 4, 5, 6, 7, 8];
+        let emptyCounter = 0;
+        for (let i = 0; i < values.length; i++) {
+            var value = values[i];
+            if (value) {
+                value = parseInt(value);
+                numbers = numbers.filter(c => c != value);
+            } else {
+                emptyCounter++;
+            }
+        }
+        if ((numbers.length != 0) || (emptyCounter == 0)) {
+            $(".error-message").text("wrong inputs");
+            return;
+        }
+        let puzzel = values.map(c => {
+            if (c) {
+                return parseInt(c)
+            }
+            return null
+        });
+        console.log(puzzel);
+        var request = {
+            puzzel: JSON.stringify(values),
+            csrfmiddlewaretoken: "{{ csrf_token }}",
+        }
+        console.log('request')
+        $.post(
+            '',
+            request,
+            function (res) {
+                var result = JSON.parse(res)
+                console.log(result);
+                console.log(result.length);
+                if (result.length == 1) {
+                    $(".error-message").text("it's already solved");
+                    return;
+                }
+                console.log(result.length)
+                $('.success-message').text('Solution found in' + (result.length - 1) + ' moves');
+                for (let i = 0; i < result.length; i++) {
+                    var newDiv = $('<div>', {
+                        class: 'puzzle-board'
+                    });
+                    var state = result[i];
+                    for (let stateI = 0; stateI < state.length; stateI++) {
+                        var tempValue = state[stateI];
+                        if (tempValue == 0)
+                            tempValue = '';
+                        var input = $('<input>', {
+                            type: 'text',
+                            disabled: 'disabled', // or simply disabled
+                            value: tempValue,
+                        });
+                        newDiv.append(input);
+                        // newDiv.append('<label>' + state[stateI] + '</label>');
+
+                    }
+                    $('#solvedive').append(newDiv);
+                }
+            }
+        )
+    }
+</script>
+
+</html>
